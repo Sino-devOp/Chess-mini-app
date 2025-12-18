@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Шахматы на сомони</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- chess.js и chessboard.js с CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+    <style>
+        body { margin: 0; padding: 10px; background: #0e0e0e; color: white; text-align: center; font-family: Arial, sans-serif; }
+        h1 { font-size: 28px; margin: 10px; }
+        #info { font-size: 20px; margin: 10px; }
+        #board { width: 100%; max-width: 600px; margin: 20px auto; }
+        #status { font-size: 24px; font-weight: bold; margin: 15px; }
+        button { padding: 15px 30px; font-size: 20px; background: #0088cc; color: white; border: none; border-radius: 12px; margin: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>♟️ Шахматы на деньги</h1>
+    <div id="info">Ставка: 2 сомони | Твой цвет: Белые</div>
+    <div id="board"></div>
+    <div id="status">Твой ход!</div>
+    <button onclick="Telegram.WebApp.close()">Сдаться / Выйти</button>
+
+    <script>
+        const game = new Chess();
+
+        const config = {
+            draggable: true,
+            position: 'start',
+            onDrop: (source, target) => {
+                const move = game.move({
+                    from: source,
+                    to: target,
+                    promotion: 'q' // всегда ферзь при превращении
+                });
+
+                if (move === null) return 'snapback'; // неверный ход
+
+                board.position(game.fen());
+                updateStatus();
+            }
+        };
+
+        const board = Chessboard('board', config);
+
+        function updateStatus() {
+            let status = 'Твой ход!';
+
+            if (game.in_checkmate()) {
+                status = 'Мат! Игра окончена.';
+            } else if (game.in_stalemate()) {
+                status = 'Пат! Ничья.';
+            } else if (game.in_draw()) {
+                status = 'Ничья!';
+            } else if (game.in_check()) {
+                status = 'Шах!';
+            } else {
+                status = game.turn() === 'w' ? 'Ход белых' : 'Ход чёрных';
+            }
+
+            document.getElementById('status').innerText = status;
+        }
+
+        // Расширяем на весь экран и адаптируем под тему Telegram
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+
+        // Если Telegram передал данные (ставка, цвет) — можно использовать Telegram.WebApp.initDataUnsafe
+        // Пока статично, потом добавим динамику от бота
+    </script>
+</body>
+</html>
